@@ -1,0 +1,94 @@
+Maria Moșneag
+333CA
+
+Arhitectura Sistemelor de Calcul
+Tema 1
+Marketplace
+
+
+
+Organizare
+
+	|-	tema	|-	consumer.py		=	conține implementarea clasei Consumer
+	|			|
+	|			|-	producer.py		=	conține implementarea clasei Producer
+	|			|
+	|			|-	marketplace.py	=	conține implementarea principalelor
+	|			|						operații care se efectuează în cadrul
+	|			|						simulării (clasa Marketplace) și teste
+	|			|						care verifică funcționalitatea metodelor
+	|			|						din Marketplace (clasa TestMarketplace)
+	|			|
+	|			|-	product.py		=	conține implementarea clasei Product
+	|
+	|-	README
+	|
+	|-	.git
+
+
+Implementare
+
+	Producer
+			Se obține un id (prin register_producer din Marketplace), apoi,
+		într-o buclă infinită, se produc și se publică rând pe rând elementele
+		din lista de produse. Pentru publicarea produselor se folosește
+		safe_publish care asigură adăugarea unui timp de așteptare după eșuarea
+		unei operații de publish.
+
+	Consumer
+			Pentru fiecare element din lista de cart-uri se obține un id (prin
+		intermediul metodei new_cart din Marketplace), apoi se parcurg toate o-
+		perațiile din lista cart-ului curent și se adaugă sau șterg elemente pe
+		baza datelor primite.
+			Pentru eliminare se folosește metoda remove_from_cart din
+		Marketplace, iar pentru adăugare se apelează safe_add_to_cart, care asi-
+		gură includerea timpului de așteptare în cazul în care operația
+		(add_to_cart din Marketplace) eșuează inițial.
+			După ce toate operațiile dintr-un cart au fost efectuate, se plasea-
+		ză comanda (place_order din Marketplace) și se afișează lista produselor
+		comandate.
+
+	Marketplace
+			Pentru stocarea datelor în Marketplace sunt folosite mai multe
+		structuri:
+
+			+ producers	=	hashmap care reține perechi de forma
+			|				(id_producător, [produse_disponibile_producător])
+			|
+			+ carts		=	hashmap care reține perechi de forma
+			|				(id_cart, [(produs_din_cart, producător_produs)])
+			|
+			+ producers_stock		=	hashmap care reține perechi de forma
+			|							(id_producător, nr_produse_din_coadă)
+
+			Metode:
+
+			+ register_producer:	Generează id-ul pentru un nou producător, a-
+			|						daugă informația necesară în producers și în
+			|						producers_stock și întoarce id-ul.
+			|						Id-urile generate sunt numerele naturale re-
+			|						prezentate sub formă de string.
+			|						("0", "1", "2" etc.)
+			|
+			+ publish:				Verifică dacă producătorul care dorește să
+			|						publice un produs nu a atins limita maximă
+			|						și, dacă este posibil, adaugă produsul în
+			|						lista de produse din market ale
+			|						producătorului.
+			|
+			+ add_to_cart:			Verifică dacă produsul cerut este disponibil
+			|						și, dacă este posibil, îl scoate din lista
+			|						de produse disponibile ale producătorului și
+			|						îl adaugă în lista cart-ului.
+			|
+			+ remove_from_cart:		Verifică dacă produsul există în cart și,
+			|						dacă da, îl scoate din cart și îl repune în
+			|						lista de produse disponibile ale producăto-
+			|						rului.
+			|
+			+ place_order:			Parcurge lista produselor din cart și, pe
+			|						baza acesteia, construiește lista cu produ-
+			|						sele comandate care va fi întoarsă ca rezul-
+			|						tat. De asemenea, tot la acest pas, se scade
+			|						și numărul de produse asociate producătoru-
+			|						lui în producers_stock.
