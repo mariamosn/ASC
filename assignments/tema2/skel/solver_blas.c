@@ -38,16 +38,16 @@ double* my_solver(int N, double *A, double *B) {
 		// ordinea în care se înmulțesc A și B (B x A)
 		CblasRight,
 		// A este superior triunghiulară
-        CblasUpper,
+		CblasUpper,
 		CblasNoTrans,
-        CblasNonUnit,
+		CblasNonUnit,
 		// număr de linii
 		N,
 		// număr de coloane
 		N,
-        1,
+		1,
 		A, N,
-        BxA, N
+		BxA, N
 	);
 
 	// calcul (B x A) x A_T
@@ -59,17 +59,17 @@ double* my_solver(int N, double *A, double *B) {
 		// ordinea în care se înmulțesc B x A și A_T ((B x A) x A_T)
 		CblasRight,
 		// A este superior triunghiulară
-        CblasUpper,
+		CblasUpper,
 		// înmulțirea se face cu A_T
 		CblasTrans,
-        CblasNonUnit,
+		CblasNonUnit,
 		// număr de linii
 		N,
 		// număr de coloane
 		N,
-        1,
+		1,
 		A, N,
-        BxA, N
+		BxA, N
 	);
 
 	BxAxA_T = BxA;
@@ -80,12 +80,12 @@ double* my_solver(int N, double *A, double *B) {
 		// B_T
 		CblasTrans,
 		// B
-        CblasNoTrans,
+		CblasNoTrans,
 		N, N, N,
 		1,
 		B, N,
 		B, N,
-        1,
+		1,
 		BxAxA_T, N
 	);
 
