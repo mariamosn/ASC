@@ -1,0 +1,31 @@
+OPT SOLVER
+Run=./tema2_opt_m: N=400: Time=8.832907
+<<< Bonus=0p >>>
+2310== Copyright (C) 2002-2017, and GNU GPL'd, by Nicholas Nethercote et al.
+==2882310== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==2882310== Command: ./tema2_opt_m input_valgrind
+==2882310== Parent PID: 2881864
+==2882310== 
+--2882310-- warning: L3 cache found, using its data for the LL simulation.
+--2882310-- warning: specified LL cache: line_size 64  assoc 16  total_size 12,582,912
+--2882310-- warning: simulated LL cache: line_size 64  assoc 24  total_size 12,582,912
+==2882310== 
+==2882310== I   refs:      1,609,833,492
+==2882310== I1  misses:            1,648
+==2882310== LLi misses:            1,562
+==2882310== I1  miss rate:          0.00%
+==2882310== LLi miss rate:          0.00%
+==2882310== 
+==2882310== D   refs:        637,638,305  (499,135,601 rd   + 138,502,704 wr)
+==2882310== D1  misses:        3,496,023  (  3,424,763 rd   +      71,260 wr)
+==2882310== LLd misses:           74,435  (     43,347 rd   +      31,088 wr)
+==2882310== D1  miss rate:           0.5% (        0.7%     +         0.1%  )
+==2882310== LLd miss rate:           0.0% (        0.0%     +         0.0%  )
+==2882310== 
+==2882310== LL refs:           3,497,671  (  3,426,411 rd   +      71,260 wr)
+==2882310== LL misses:            75,997  (     44,909 rd   +      31,088 wr)
+==2882310== LL miss rate:            0.0% (        0.0%     +         0.0%  )
+==2882310== 
+==2882310== Branches:         43,083,017  ( 42,842,336 cond +     240,681 ind)
+==2882310== Mispredicts:       2,093,734  (  2,093,480 cond +         254 ind)
+==2882310== Mispred rate:            4.9% (        4.9%     +         0.1%   )

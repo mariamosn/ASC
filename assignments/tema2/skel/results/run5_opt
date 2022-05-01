@@ -1,0 +1,11 @@
+OPT SOLVER
+Run=./tema2_opt_m: N=400: Time=0.184755
+OPT SOLVER
+Run=./tema2_opt_m: N=800: Time=1.428075
+OPT SOLVER
+Run=./tema2_opt_m: N=1200: Time=4.770681
+OPT SOLVER
+Run=./tema2_opt_m: N=600: Time=0.606875
+OPT SOLVER
+Run=./tema2_opt_m: N=1000: Time=2.769342
+<<< Bonus=10p >>>

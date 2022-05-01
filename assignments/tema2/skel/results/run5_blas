@@ -1,0 +1,10 @@
+BLAS SOLVER
+Run=./tema2_blas: N=400: Time=0.037736
+BLAS SOLVER
+Run=./tema2_blas: N=800: Time=0.278151
+BLAS SOLVER
+Run=./tema2_blas: N=1200: Time=0.912803
+BLAS SOLVER
+Run=./tema2_blas: N=600: Time=0.125292
+BLAS SOLVER
+Run=./tema2_blas: N=1000: Time=0.545824
