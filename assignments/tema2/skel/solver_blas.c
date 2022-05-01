@@ -1,6 +1,8 @@
 /*
  * Tema 2 ASC
  * 2022 Spring
+ * Maria Moșneag
+ * 333CA
  */
 #include <stdio.h>
 #include <string.h>
@@ -19,20 +21,21 @@
 	} while (0)
 
 /* 
- * Add your BLAS implementation here
+ * Implementarea BLAS.
  */
 double* my_solver(int N, double *A, double *B) {
 	printf("BLAS SOLVER\n");
+
 
 	// calcul B x A
 	// Obs. A = matrice superior triunghiulară
 	double *BxA = calloc(N * N, sizeof(double));
 	DIE(BxA == NULL, "BxA calloc error");
 
-	memcpy(BxA, B, N * N * sizeof(double));
-
 	// inițial BxA = B,
 	// după efectuarea înmulțirii, BxA = B x A
+	memcpy(BxA, B, N * N * sizeof(double));
+
 	cblas_dtrmm(
 		CblasRowMajor,
 		// ordinea în care se înmulțesc A și B (B x A)
@@ -49,6 +52,7 @@ double* my_solver(int N, double *A, double *B) {
 		A, N,
 		BxA, N
 	);
+
 
 	// calcul (B x A) x A_T
 	// Obs. A_T = matrice inferior triunghiulară
@@ -73,6 +77,7 @@ double* my_solver(int N, double *A, double *B) {
 	);
 
 	BxAxA_T = BxA;
+
 
 	// calcul B_T x B + B x A x A_T
 	cblas_dgemm(
