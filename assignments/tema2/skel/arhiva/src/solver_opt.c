@@ -24,7 +24,7 @@
 double* my_solver(int N, double *A, double* B) {
 	printf("OPT SOLVER\n");
 
-	int blockSize = 40;
+	int blockSize = 50;
 
 
 	// calcul B x A
@@ -50,6 +50,7 @@ double* my_solver(int N, double *A, double* B) {
                     for (register int i = 0; i < blockSize; i++) {
 
                         for (register int j = 0; j < blockSize; j += 10) {
+                            // BxA[(bi + i) * N + (bj + j)] += B[(bi + i) * N + (bk + k)] * A[(bk + k) * N + (bj + j)];
 							// loop unrolling
 							*pBxA += *pB * *pA;
 							pBxA++;
@@ -128,6 +129,7 @@ double* my_solver(int N, double *A, double* B) {
 						register double *pA_T = orig_pA_T + k;
 
                         for (register int j = 0; j < blockSize; j += 2) {
+							// BxAxA_T[(bi + i) * N + bj + j] += BxA[(bi + i) * N + bk + k] * A[(bj + j) * N + bk + k];
 							// loop unrolling
 							*pBxAxA_T += *pBxA * *pA_T;
 							pBxAxA_T++;
@@ -168,6 +170,7 @@ double* my_solver(int N, double *A, double* B) {
                     for (register int i = 0; i < blockSize; i++) {
 
                         for (register int j = 0; j < blockSize; j++) {
+							// B_TxB[(bi + i) * N + bj + j] += B[(bk + k) * N + bi + i] * B[(bk + k) * N + bj + j];
 							// loop unrolling
 							*pB_TxB += *pB_T * pB[j];
 							pB_TxB++;

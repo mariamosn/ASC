@@ -1,0 +1,175 @@
+Maria Moșneag
+333CA
+
+Tema 2 ASC
+
+
+Organizare
+
+	.
+	|
+	|-- src
+	|	|
+	|	|-- solver_blas.c	=>	implementarea variantei blas
+	|	|-- solver_neopt.c	=>	implementarea variantei neoptimizate
+	|	|-- solver_opt.c	=>	implementarea variantei optimizate
+	|	|
+	|	| (alte resurse necesare obținerii executabilelor)
+	|	|-- main.c
+	|	|-- compare.c
+	|	|-- utils.h
+	|	|-- Makefile
+	|
+	|-- cache
+	|	|
+	|	|-- blas.cache
+	|	|-- neopt.cache
+	|	|-- opt_m.cache
+	|
+	|-- memory
+	|	|
+	|	|-- blas.memory
+	|	|-- neopt.memory
+	|	|-- blas.memory
+	|
+	|-- grafice
+	|
+	|-- README
+
+	Observații:
+
+		Fișierul X din directorul cache este obținut prin rularea comenzii
+			valgrind --tool=cachegrind --branch-sim=yes ./tema2_X input_valgrind
+
+		Fișierul X din directorul memory este obținut prin rularea comenzii
+			valgrind --tool=memcheck --leak-check=full ./tema2_X input_valgrind
+
+
+Implementare
+
+	Pașii generali urmați în cadrul algoritmului sunt aceiași pentru toate cele
+	trei variante:
+		1) Se calculează B x A.
+		2) Se calculează (B x A) x A_T.
+			B x A este deja calculată la pasul 1.
+			A_T = A transpus
+		3) Se calculează B_T x B.
+		4) Se calculează (B x A x A_T) + (B_T x B).
+
+	Particularități ale celor trei implementări:
+
+	+ blas
+		Se folosesc funcțiile
+			- cblas_dtrmm (înmulțire de matrici, una dintre matrici fiind triun-
+							ghiulară)
+			- cblas_dgemm (înmulțire de matrici)
+		În cazul acestei variante, pașii 3 și 4 se fac concomitent, întrucât o-
+			perația realizată de cblas_dgemm este a * op(A) * op(B) + b * C,
+			fiind astfel posibilă și realizarea adunării la acest pas.
+
+	+ neopt (neoptimizată)
+		Înmulțirile de matrice se realizează în varianta simplă, cu 3 for-uri.
+		Întrucât A este matrice superior triunghiulară (și A_T matrice inferior
+			triunghiulară), în cazul operațiilor cu aceste matrice se pot "sări"
+			anumite elemente.
+				ex.: În cazul înmulțirii dintre B și A, k va lua valori numai
+				între 0 și j.
+		Pentru obținerea matricei transpuse nu este necesară crearea unei matri-
+			ce noi, ci elementele se pot obține pe baza matricei originale
+			astfel:
+				A_T[i][j] = A[j][i] sau, în cazul nostru,
+				A_T[i * N + j] = A[j * N + i]
+		Adunarea matricelor se face prin parcurgerea fiecărui element din cele
+			două matrice.
+
+	+ opt_m (optimizată)
+		Implementarea opt_m pornește de la varianta neopt care a fost apoi
+			îmbunătățită prin utilizarea mai multor tehnici de optimizarea:
+			- BMM (Blocked Matrix Multiplication)
+			- interschimbarea ordinii for-urilor (în unele locuri) pentru a
+				utiliza configurații de tipul k - i - j, în loc de i - j - k
+			- folosirea pointerilor pentru a accesa vectorii, fiind astfel în-
+				locuite dereferențierile
+			- salvarea variabilelor mai des folosite în regiștri (prin folosirea
+				keyword-ului "register")
+			- loop unrolling
+
+
+Analiză cache
+
+	În directorul cache se găsesc informații despre interacțiunea programului cu
+		memoria (cache-ul) pentru fiecare dintre cele trei implementări.
+
+	I refs		= numărul de instrucțiuni executate
+	D refs		= numărul de accesuri în memorie (scrieri sau citiri)
+	Branches	= numărul de branch-uri
+
+	Fișierele conțin de asemenea și informații despre miss-uri (numărul și unde
+		s-au produs - în cache-ul de nivel 1 sau în cele inferioare).
+	De asemenea, se găsește și o statistică asupra acurateții predicției de
+		branch-uri.
+
+	Se poate observa cu ușurință că atât numărul de instrucțiuni executate, cât
+		și numărul de accesuri la memorie și numărul de branch-uri sunt semnifi-
+		cativ mai mici în cazul implementării blas.
+	În cazul variantei neoptimizate se remarcă cu ușurință că toți indicii men-
+		ționați anterior au valori mult mai mari decât în cazul celorlalte im-
+		plementări, acest fapt reflectându-se și în durata mult mai mare de exe-
+		cuție.
+
+	Pentru a observa efectul optimizărilor, este necesar să comparăm rezultatele
+		variantelor neopt și opt_m.
+
+	Prin folosirea pointerilor pentru a accesa vectorii și a aritmeticii cu
+		pointeri în locul dereferențierilor și al realizării calculelor complexe
+		la fiecare acces (ex. A[i * N + j]), dar și prin utilizarea loop
+		unrolling-ului s-a redus numărul de instrucțiuni executate.
+		Numărul de instrucțiuni
+			+ neopt: 5,924,781,307
+			+ opt_m: 1,605,449,178
+
+	Utilizarea BMM, interschimbarea configurației for-urilor (de la i-j-k la
+		k-i-j) și introducerea variabilelor des folosite în regiștri au drept
+		urmare reducerea numărului de accesuri în memorie și, de asemenea, al
+		numărului de cache miss-uri. Acest lucru se întâmplă deoarece parcurge-
+		rea elementelor se face acum ținând cont de modul în care acestea sunt
+		organizate în memorie. De exemplu, știind că în memoria cache nu este a-
+		dus niciodată un singur element, ci o linie întreagă, putem profita de
+		faptul că "vecinii" elementului curent se găsesc în cache și să efectuăm
+		operații cu aceștia.
+		Numărul de accesuri în memorie
+			+ neopt: 2,962,755,614
+			+ opt_m:   633,098,827
+		Numărul de miss-uri (în cache L1)
+			+ neopt: 153,196,912
+			+ opt_m:   1,304,222
+
+	Folosirea loop unrolling-ului reduce numărul de branch-uri.
+		Branch-uri
+			+ neopt: 132,236,925
+			+ opt_m:  43,944,528
+
+
+Analiză comparativă
+
+	Rezultatele analizate anterior (output-ul cachegrind) sunt reflectate fără
+		doar și poate în graficul care prezintă comparativ timpii celor trei
+		implementări.
+	După cum era de așteptat, implementarea blas este cea mai rapidă. Acest lu-
+		cru a fost „prevestit” de rezultatele semnificativ mai bune obținute la
+		analiza anterioară (număr mic de instrucțiuni, accesuri în memorie,
+		miss-uri, branch-uri, branch-uri greșite).
+	Implementarea neoptimizată este de departe cea mai lentă. Dacă celelalte
+		două implementări obțin pentru cel mai mare test (N = 1200) timpi sub
+		5s, aceasta are nevoie de peste 33s pentru a realiza calculele.
+	Varianta optimizată este vizibil mai lentă față de blas. Totuși, efectul mo-
+		dificărilor este ușor de observat în comparație cu varianta neopt.
+	Este interesant de remarcat faptul că durata de execuție a variantei neopt
+		pentru cazul N = 400 este mai mare decât cea a variantei blas în cazul
+		N = 1200.
+
+
+Bibliografie
+
+	Laboratoare SO - macro-ul DIE
+	https://ocw.cs.pub.ro/courses/asc/laboratoare/05

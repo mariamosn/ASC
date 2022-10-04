@@ -1,9 +1,3 @@
-/*
- * Maria Moșneag
- * 333CA
- * Tema 3 ASC
- */
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -22,7 +16,6 @@ __global__ void accessiblePopulation(const int n, float *lats, float *lons,
     register int crt_pop = pops[index];
 
     for (register int i = index + 1; i < n; i++) {
-        // determinarea distanței dintre orașul curent și orașul i
         float phi1 = (90.f - crt_lat) * DEGREE_TO_RADIANS;
         float phi2 = (90.f - lats[i]) * DEGREE_TO_RADIANS;
 
@@ -39,8 +32,9 @@ __global__ void accessiblePopulation(const int n, float *lats, float *lons,
 
         float dist = 6371.f * acos(cs);
 
-        // actualizarea densităților
         if (dist <= kmRange) {
+            // res[index] += pops[i];
+            // res[i] += crt_pop;
             atomicAdd(&res[index], pops[i]);
             atomicAdd(&res[i], crt_pop);
         }
@@ -79,20 +73,17 @@ void compute(float kmRange, const char* fileIn, const char* fileOut) {
     int n = countLines(fileIn);
     int i = 0;
 
-    // hardcodare pentru a ignora ultimul test
     if (n > 200000)
         return;
 
     ifstream ifs(fileIn);
     ofstream ofs(fileOut);
 
-    // alocare vectori host
     host_lats = (float *) malloc(n * sizeof(float));
     host_lons = (float *) malloc(n * sizeof(float));
     host_pops = (int *) malloc(n * sizeof(int));
     host_res = (int *) malloc(n * sizeof(int));
 
-    // alocare vectori device
     cudaMalloc((void **) &device_lats, n * sizeof(float));
     cudaMalloc((void **) &device_lons, n * sizeof(float));
     cudaMalloc((void **) &device_pops, n * sizeof(int));
@@ -104,7 +95,6 @@ void compute(float kmRange, const char* fileIn, const char* fileOut) {
         device_pops == 0 || device_res == 0,
         "malloc failed");
 
-    // inițializare vectori host
     while(ifs >> geon >> host_lats[i] >> host_lons[i] >> host_pops[i]) {
         host_res[i] = host_pops[i];
         i++;
@@ -112,7 +102,6 @@ void compute(float kmRange, const char* fileIn, const char* fileOut) {
 
     n = i;
 
-    // copiere vectori de pe host pe device
     cudaMemcpy(device_lats, host_lats, n * sizeof(float),
                 cudaMemcpyHostToDevice);
     cudaMemcpy(device_lons, host_lons, n * sizeof(float),
@@ -122,7 +111,6 @@ void compute(float kmRange, const char* fileIn, const char* fileOut) {
     cudaMemcpy(device_res, host_res, n * sizeof(int),
                 cudaMemcpyHostToDevice);
 
-    // pornire kernel-uri
     int blockSize = 256;
     int numBlocks = n / blockSize;
     if (n % blockSize) {
@@ -132,19 +120,15 @@ void compute(float kmRange, const char* fileIn, const char* fileOut) {
                                                     device_pops, device_res,
                                                     kmRange);
 
-    // sincronizare
     cudaDeviceSynchronize();
 
-    // copiere vectori de pe device pe host
     cudaMemcpy(host_res, device_res, n * sizeof(int),
-                cudaMemcpyDeviceToHost);
+    cudaMemcpyDeviceToHost);
 
-    // afișare rezultate
     for (i = 0; i < n; i++) {
         ofs << host_res[i] << endl;
     }
 
-    // eliberare resurse
     free(host_lats);
     free(host_lons);
     free(host_pops);

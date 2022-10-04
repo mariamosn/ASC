@@ -1,0 +1,93 @@
+Maria Moșneag
+333CA
+Tema 3 ASC
+
+
+Cum s-a implementat soluția ?
+
+    Pentru ușurința implementării, încep prin a determina numărul de linii din
+fișierul de intrare (care reprezintă și numărul de orașe pentru care se va
+calcula densitatea de populație).
+    Pașii urmați apoi sunt:
+        1. Aloc vectorii de pe host. (malloc)
+        2. Aloc vectorii de pe device. (cudaMalloc)
+        3. Inițializez vectorii de pe host pe baza informației de la input.
+        4. Copiez informația de pe host pe device. (cudaMemcpy)
+        5. Pornesc kernel-urile. (accessiblePopulation)
+        6. Sincronizez host-ul și device-urile. (cudaDeviceSynchronize)
+        7. Copiez informația de pe device pe host. (cudaMemcpy)
+    La final, afișez rezultatele și eliberez resursele alocate.
+
+    În cadrul unui kernel, se execută calculele pentru un oraș:
+        - Se calculează distanța dintre orașul curent și fiecare dintre orașele
+            care au un index mai mare (adică ce se găsesc după orașul curent în
+            fișierul de input).
+        - Dacă distanța obținută este mai mică decât raza primită ca parametru
+            (kmRange), atunci populația orașului curent se va adăuga la suma
+            calculată pentru celălalt oraș și invers.
+    Pentru operațiile de adunare, întrucât pot exista mai multe procesoare sau
+        thread-uri care să acceseze simultan vectorul rezultat (densitatea
+        populației - res) la aceeași poziție (pentru același oraș), am decis să
+        folosesc operații atomice (atomicAdd) pentru a nu obține rezultate
+        eronate.
+
+
+Output la performanțele obținute și discutie rezultate.
+
+Executing tests on K40M with timeout: 30s
+--------------------------------
+B0 Passed .... 10p
+E1 Passed .... 20p
+M1 Passed .... 20p
+M2 Passed .... 20p
+H1 Failed ....  0p
+--------------------------------
+Final score:   70/90
+--------------------------------
+Test 1 - B0
+
+real	0m2.703s
+user	0m0.069s
+sys	    0m0.982s
+
+9960 orașe
+--------------------------------
+Test 2 - E1
+
+real	0m4.053s
+user	0m0.292s
+sys	    0m0.978s
+
+53840 orașe
+--------------------------------
+Test 3 - M1
+
+real	0m7.759s
+user	0m1.963s
+sys	    0m1.507s
+
+164509 orașe
+--------------------------------
+Test 4 - M2
+
+real	0m8.245s
+user	0m2.303s
+sys	    0m1.612s
+
+180000 orașe
+--------------------------------
+Test 5 - H1
+
+real	0m18.002s
+user	0m6.712s
+sys	    0m1.700s
+
+956100 orașe
+
+    În cazul acestui test, limita de timp este depășită. Astfel, am ales să
+introduc în main un if care, pentru valori mai mari ale lui n (numărul de
+orașe), cauzează întreruperea execuției astfel încât să treacă măcar primele
+teste.
+--------------------------------
+    Se poate observa că mărirea numărului de orașe (adică a inputului) duce la
+creșterea duratei de execuție. Totuși, această creștere nu este una liniară.
